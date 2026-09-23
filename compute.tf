@@ -43,7 +43,7 @@ resource "aws_ecs_task_definition" "app" {
     container_definitions = jsonencode([
         {
             name      = "astro-app"
-            image     = "${aws_ecr_repository.app.repository_url}:v1"
+            image     = "${aws_ecr_repository.app.repository_url}:${var.image_tag}"
             essential = true
             environment = [
                 { name = "APP_NAME", value = "astro-app" },
@@ -83,4 +83,12 @@ resource "aws_ecs_service" "app" {
         security_groups  = [aws_security_group.web.id]
         assign_public_ip = true
     }
+
+    load_balancer {
+        target_group_arn = aws_lb_target_group.app.arn
+        container_name    = "astro-app"
+        container_port    = 80
+    }
+
+    depends_on = [aws_lb_listener.app]
 }
